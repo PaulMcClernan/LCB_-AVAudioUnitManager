@@ -34,16 +34,18 @@ public foreign handler ObjC_NSArrayComponentsJoinedByString(in pObj as ObjcId, i
 
 private foreign handler c_CFErrorCopyDescription(in pCFErrorRef as ObjcId) returns ObjcId binds to "c:CFErrorCopyDescription"
 
-private foreign handler objC_AVAudioUnitAUComponent() returns ObjcId binds to "objc:AVAudioUnitComponentManager.+alloc"
 private foreign handler objC_AVAudioUnitAUComponentManager() returns ObjcId binds to "objc:AVAudioUnitComponentManager.+sharedAudioUnitComponentManager"
 private foreign handler objC_AVAudioUnitGetAudioUnitsFromACDesc(in pSharedAudioUnitComponentManager as ObjcId, in pAudioComponentDescription as AudioComponentDescription) returns ObjcId \
                         binds to "objc:AVAudioUnitComponentManager.-componentsMatchingDescription:"
-private foreign handler objC_AVAudioUnitGetACDescription(in pAVAUSampler as ObjcId) returns AudioComponentDescription binds to "objc:AVAudioUnitComponentManager.audioComponentDescription"
-private foreign handler objC_AVAudioUnitGetName(in pAVAudioUnit as ObjcId) returns ObjcId binds to "objc:AVAudioUnit.name"
-private foreign handler objC_AVAudioUnitGetManufacturer(in pAVAUSampler as ObjcId) returns ObjcId binds to "objc:AVAudioUnit.manufacturerName"
-private foreign handler objC_AVAudioUnitGetVersion(in pAVAUSampler as ObjcId) returns UInt64 binds to "objc:AVAudioUnit.version"
-private foreign handler objC_AVAudioUnitGetAudioUnit(in pAVAUSampler as ObjcId) returns ObjcId binds to "objc:AVAudioUnit.audioUnit"
--- private foreign handler objC_AVAudioUnitGetAUAudioUnit(in pAVAUSampler as ObjcId) returns ObjcId binds to "objc:AVAudioUnit.AUAudioUnit" -- macOS 10.11+ only
+private foreign handler objC_AVAudioUnitGetACDescription(in pAVAudioUnit as ObjcId) returns AudioComponentDescription binds to "objc:AVAudioUnitComponent.audioComponentDescription"
+private foreign handler objC_AVAudioUnitGetName(in pAVAudioUnit as ObjcId) returns ObjcId binds to "objc:AVAudioUnitComponent.name"
+private foreign handler objC_AVAudioUnitGetHasMIDIInput(in pAVAudioUnit as ObjcId) returns CBool binds to "objc:AVAudioUnitComponent.hasMIDIInput"
+private foreign handler objC_AVAudioUnitGetArchitectures(in pAVAudioUnit as ObjcId) returns ObjcId binds to "objc:AVAudioUnitComponent.availableArchitectures"
+private foreign handler objC_AVAudioUnitGetVersionNSStr(in pAVAudioUnit as ObjcId) returns ObjcId binds to "objc:AVAudioUnitComponent.versionString"
+private foreign handler objC_AVAudioUnitGetManufacturer(in pAVAudioUnit as ObjcId) returns ObjcId binds to "objc:AVAudioUnitComponent.manufacturerName"
+private foreign handler objC_AVAudioUnitGetTypeName(in pAVAudioUnit as ObjcId) returns ObjcId binds to "objc:AVAudioUnitComponent.typeName"
+private foreign handler objC_AVAudioUnitGetVersion(in pAVAudioUnit as ObjcId) returns UInt64 binds to "objc:AVAudioUnitComponent.version"
+private foreign handler objC_AVAudioUnitGetAudioUnit(in pAVAudioUnit as ObjcId) returns ObjcId binds to "objc:AVAudioUnitComponent.audioUnit" -- macOS 10.11+ only
 
 private foreign handler c_AudioUnitUninitialize(in pAVAUSampler as ObjcId) returns CSInt binds to "c:AudioUnit.framework>AudioUnitUninitialize"
 private foreign handler c_AudioUnitInitialize(in pAVAUSampler as ObjcId) returns CSInt binds to "c:AudioUnit.framework>AudioUnitInitialize"
@@ -89,6 +91,8 @@ private handler getAudioComponentDescriptionCharCode(in pConstant as Number) ret
       return "auou"
    else if pConstant is 1919512419 then
       return "rioc"
+   else
+      return "????"
    end if
 end handler
 private handler getAudioComponentDescriptionCharCodeNum(in pFourCharCode as String) returns Number
@@ -106,19 +110,22 @@ private handler getAudioComponentDescriptionCharCodeNum(in pFourCharCode as Stri
       return 1635086197
    else if pFourCharCode is "rioc" then
       return 1919512419
+   else
+      return 0
    end if
 end handler
 
 public handler AVAudioUnitCMGetUnits() returns optional any
-   -- variable tAudioComponentDescription as optional AudioComponentDescription
-   variable tAudioComponentDescription as optional AudioComponentDescription
-   variable tAVAudioUnitsManagerInstance as optional ObjcObject
-   variable tMatchingtAudioUnitsNSArray as optional ObjcObject
-   variable tMatchingtAudioUnitsList as optional List
-   variable tAudioUnit as optional ObjcObject
-   variable tTempNSStr as optional ObjcObject
-   variable tTempStr as optional String
 
+   variable tAudioComponentDescription as optional AudioComponentDescription
+   variable tAudioComponentDescrIter as optional AudioComponentDescription
+   variable tAVAudioUnitsManagerInstance as optional ObjcObject
+   variable tMatchingtAudioComponentsNSArray as optional ObjcObject
+   variable tAudioComponentsList as optional List
+   variable tAudioComponent as optional ObjcObject
+   variable tTempNSObj as optional ObjcObject
+   variable tTempStr as optional String
+   variable tNumber as optional Number
    variable tComponentType as UInt32
    variable tComponentSubType as UInt32
    variable tComponentManufacturer as UInt32
@@ -127,54 +134,85 @@ public handler AVAudioUnitCMGetUnits() returns optional any
 
    unsafe
    put objC_AVAudioUnitAUComponentManager() into tAVAudioUnitsManagerInstance
+
    put [0,0,0,0,0] into tAudioComponentDescription
-   -- log tAVAudioUnitsManagerInstance
+   put [0,0,0,0,0] into tAudioComponentDescrIter
    -- AudioComponentDescription feilds are componentType,componentSubType,componentManufacturer,componentFlags = 0,componentFlagsMask = 0
    -- For searching for AudioUnits, any feilds with 0 are wildcards
-   -- put 0 into tComponentType
-   -- put tComponentType into element 1 of tAudioComponentDescription
-   -- put 0 into tComponentSubType
+   -- put getAudioComponentDescriptionCharCodeNum("aumu") into tAudioComponentDescription[1] -- componentType
    -- put tComponentSubType into tAudioComponentDescription[2]
-
    -- put getAudioComponentDescriptionCharCodeNum("appl") into tAudioComponentDescription[3] -- componentManufacturer
-   -- put 0 into tComponentManufacturer
-   -- put tComponentManufacturer into tAudioComponentDescription[3]
-   -- put 0 into tComponentFlags
    -- put tComponentType into tAudioComponentDescription[4]
-   -- put 0 into tComponentFlagsMask
    -- put tComponentFlagsMask into tAudioComponentDescription[5]
 
-   put objC_AVAudioUnitGetAudioUnitsFromACDesc(tAVAudioUnitsManagerInstance,tAudioComponentDescription) into tMatchingtAudioUnitsNSArray
+   put objC_AVAudioUnitGetAudioUnitsFromACDesc(tAVAudioUnitsManagerInstance,tAudioComponentDescription) into tMatchingtAudioComponentsNSArray
    -- log tMatchingtAudioUnitsNSArray
-   put ListFromNSArray(tMatchingtAudioUnitsNSArray) into tMatchingtAudioUnitsList
+   put ListFromNSArray(tMatchingtAudioComponentsNSArray) into tAudioComponentsList
    -- log tMatchingtAudioUnitsList
-   put "" into tTempStr
-   repeat for each element tAudioUnit in tMatchingtAudioUnitsList
-      put objC_AVAudioUnitGetName(tAudioUnit) into tTempNSStr
-      if tTempNSStr is not nothing then
-         put StringFromNSString(tTempNSStr) &"\n" after tTempStr
-         -- log tTempStr
-      else
-         put "UNNAMED \n" after tTempStr
-      end if
-   end repeat
-      -- put objC_AVAudioUnitGetName(sAVAudioUnitMIDIInstrument) into tNSStrObj
-      -- put StringFromNSString(tNSStrObj) into tStr
-      -- put "Name: " & tStr & newline into tInfoChunk
-      -- put objC_AVAudioUnitGetManufacturer(sAVAudioUnitMIDIInstrument)into tNSStrObj
-      -- put StringFromNSString(tNSStrObj) into tStr
-      -- put "Manufacturer: " & tStr & newline after tInfoChunk
-      -- put objC_AVAudioUnitGetVersion(sAVAudioUnitMIDIInstrument) into tNumber -- NaturalUInt
-      -- put "Version: " & tNumber formatted as string & newline after tInfoChunk
-      -- put objC_AVAudioNodeGetNumberOfInputs(sAVAudioUnitMIDIInstrument) into tNumber
-      -- put "Inputs: " & tNumber formatted as string & newline after tInfoChunk
-      -- put objC_AVAudioNodeGetNumberOfOutputs(sAVAudioUnitMIDIInstrument) into tNumber
-      -- put "Outputs: " & tNumber formatted as string & newline after tInfoChunk
-      -- put objC_AVAudioUnitGetACDescription(sAVAudioUnitMIDIInstrument) into tAudioComponentDescription
-      -- put "AudioComponentDescription: " after tInfoChunk
 
-      -- put getAudioComponentDescriptionCharCode(element 1 of tAudioComponentDescription) after tInfoChunk
-      -- put element 1 of tAudioComponentDescription formatted as string after tInfoChunk
+   put "" into tTempStr
+   repeat for each element tAudioComponent in tAudioComponentsList
+
+      put objC_AVAudioUnitGetName(tAudioComponent) into tTempNSObj
+      if tTempNSObj is not nothing then
+         put StringFromNSString(tTempNSObj) & "," after tTempStr
+      else
+         put "Unnammed Audio Component," after tTempStr
+      end if
+
+      put objC_AVAudioUnitGetManufacturer(tAudioComponent) into tTempNSObj
+      if tTempNSObj is not nothing then
+         put StringFromNSString(tTempNSObj) & "," after tTempStr
+      else
+         put "Unknown Manufacturer," after tTempStr
+      end if
+
+      put objC_AVAudioUnitGetVersionNSStr(tAudioComponent) into tTempNSObj
+      if tTempNSObj is not nothing then
+         put "v." & StringFromNSString(tTempNSObj) & "," after tTempStr
+      else
+         put "Unknown Version," after tTempStr
+      end if
+
+      put objC_AVAudioUnitGetTypeName(tAudioComponent) into tTempNSObj
+      if tTempNSObj is not nothing then
+         put StringFromNSString(tTempNSObj) & "," after tTempStr
+      else
+         put "Unknown Type," after tTempStr
+      end if
+
+      if objC_AVAudioUnitGetHasMIDIInput(tAudioComponent) then
+         put "MIDI Input," after tTempStr
+      else
+         put "No MIDI In," after tTempStr
+      end if
+
+      -- put objC_AVAudioUnitGetArchitectures into tTempNSObj -- an NS Array of Constants that corespond to CPU Architectures
+
+      -- put objC_AVAudioUnitGetVersion(tAudioComponent) into tNumber -- NaturalUInt
+      -- put tNumber formatted as string & newline after tTempStr
+
+      --put objC_AVAudioNodeGetNumberOfInputs(tAudioComponent) into tTempNSObj
+      --put NumberFromNSNumber(tTempNSObj) & "," into tNumber
+      --put tNumber formatted as string & "," after tTempStr
+
+      --put objC_AVAudioNodeGetNumberOfOutputs(tAudioComponent) into tTempNSObj
+      --put NumberFromNSNumber(tTempNSObj) & "," into tNumber
+      --put tNumber formatted as string & "," after tTempStr
+
+      put objC_AVAudioUnitGetACDescription(tAudioComponent) into tAudioComponentDescrIter
+      -- put NSArrayToString(tMatchingtAudioUnitsNSArray) after tTempStr
+      -- put element 1 of tAudioComponentDescrIter formatted as string & "," after tTempStr
+      -- put element 2 of tAudioComponentDescrIter formatted as string & "," after tTempStr
+      -- put element 3 of tAudioComponentDescrIter formatted as string & "," after tTempStr
+      -- put element 4 of tAudioComponentDescrIter formatted as string & "," after tTempStr
+      -- put element 5 of tAudioComponentDescrIter formatted as string & "," after tTempStr
+      -- put tAudioComponentDescription formatted as string after tTempStr
+      -- put "AudioComponentDescription: " after tInfoChunk
+      put getAudioComponentDescriptionCharCode(element 3 of tAudioComponentDescrIter) after tTempStr
+      put "\n" after tTempStr
+   end repeat
+   -- log tTempStr
    end unsafe
    -- Name: AUSampler
    -- Manufacturer: Apple
