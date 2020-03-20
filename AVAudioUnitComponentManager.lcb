@@ -26,18 +26,22 @@ private foreign handler objC_NSErrorAlloc() returns ObjcId binds to "objc:NSErro
 private foreign handler objC_NSObjectRetain(in pNSObj as ObjcId) returns ObjcId binds to "objc:NSObject.-retain"
 private foreign handler objC_NSObjectAutoRealease(in pNSObj as ObjcId) returns ObjcId binds to "objc:NSObject.-autorelease"
 private foreign handler objC_NSObjectRelease(in pNSObj as ObjcId) returns nothing binds to "objc:NSObject.-release"
-
 private foreign handler objC_NSMutableArrayAlloc() returns ObjcRetainedId binds to "objc:NSMutableArray.+alloc"
 private foreign handler objC_NSMutableArrayInitWithCapacity(in pNSMutableArray as ObjcId, in pCapacity as NaturalFloat) returns ObjcId binds to "objc:NSMutableArray.-initWithCapacity:"
 private foreign handler objC_NSMutableArrayInitWithNSArray(in pNSMutableArray as ObjcId, in pNSArray as ObjcId) returns ObjcId binds to "objc:NSMutableArray.-initWithArray:"
 public foreign handler ObjC_NSArrayAlloc() returns ObjcRetainedId binds to "objc:NSArray.+alloc"
 public foreign handler ObjC_NSArrayComponentsJoinedByString(in pObj as ObjcId, in pSeperator as ObjcId) returns ObjcId binds to "objc:NSArray.-componentsJoinedByString:"
-
 private foreign handler c_CFErrorCopyDescription(in pCFErrorRef as ObjcId) returns ObjcId binds to "c:CFErrorCopyDescription"
+public foreign handler ObjC_NSPredicateWithFormat(in pFormatNSString as ObjcId) returns ObjcId binds to "objc:NSPredicate.+predicateWithFormat:"
+public foreign handler ObjC_NSPredicateFromMetadataQueryString(in pFormatNSString as ObjcId) returns ObjcId binds to "objc:NSPredicate.+predicateFromMetadataQueryString:"
 
 private foreign handler objC_AVAudioUnitAUComponentManager() returns ObjcId binds to "objc:AVAudioUnitComponentManager.+sharedAudioUnitComponentManager"
+private foreign handler objC_AVAudioUnitAUComponentManagerTagNames(in pSharedAudioUnitComponentManager as ObjcId) returns ObjcId binds to "objc:AVAudioUnitComponentManager.tagNames"
+-- private foreign handler objC_AVAudioUnitAUComponentManagerTagNames(in pSharedAudioUnitComponentManager as ObjcId) returns ObjcId binds to "objc:AVAudioUnitComponentManager.standardLocalizedTagNames"
 private foreign handler objC_AVAudioUnitGetAudioUnitsFromACDesc(in pSharedAudioUnitComponentManager as ObjcId, in pAudioComponentDescription as AudioComponentDescriptionParam) returns ObjcId \
                         binds to "objc:AVAudioUnitComponentManager.-componentsMatchingDescription:"
+private foreign handler objC_AVAudioUnitGetAudioUnitsFromNSPredicate(in pSharedAudioUnitComponentManager as ObjcId, in pNSPredicate as ObjcId) returns ObjcId \
+                        binds to "objc:AVAudioUnitComponentManager.-componentsMatchingPredicate:"
 private foreign handler objC_AVAudioUnitGetACDescription(in pAVAudioUnit as ObjcId) returns AudioComponentDescriptionReturn binds to "objc:AVAudioUnitComponent.audioComponentDescription"
 private foreign handler objC_AVAudioUnitGetName(in pAVAudioUnit as ObjcId) returns ObjcId binds to "objc:AVAudioUnitComponent.name"
 private foreign handler objC_AVAudioUnitGetHasMIDIInput(in pAVAudioUnit as ObjcId) returns CBool binds to "objc:AVAudioUnitComponent.hasMIDIInput"
@@ -56,14 +60,6 @@ private foreign handler c_AudioUnitGetProperty(in pAudioUnit as ObjcId,in pPrope
 private foreign handler objC_AVAudioUnitComponentGetComponent(in pAVAUSampler as ObjcId) returns any binds to "objc:AVAudioUnitComponent.audioComponent"
 private foreign handler objC_AVAudioUnitComponentHasCustomView(in pAVAUSampler as ObjcId) returns CBool binds to "objc:AVAudioUnitComponent.hasCustomView"
 
-constant kAudioUnitType_MusicDevice is 1635085685 -- 'umua' reversed for Intel, PowerPC would be 1970107745 -- "aumu"
-constant kAudioUnitSubType_Sampler is 1935764848 -- 'pmas' reversed for Intel, PowerPC would be 1886216563 -- "samp"
-constant kAudioUnitSubType_DLSSynth is  1684828960 -- ' sld' reversed for Intel, PowerPC would be 544435300 --"dls "
-constant kAudioUnitSubType_MIDISynth is 1836284270 -- 'nysm' reversed for Intel, PowerPC would be 1853453165 --"msyn"
-constant kAudioUnitManufacturer_Apple is 1634758764 -- 'lppa' reversed for Intel, PowerPC would be 1819308129 -- "appl"
-constant kAudioUnitType_Output is 1635086197 -- "uoua" reversed for Intel, PowerPC would be 1970238817 -- "auou"
-constant kAudioUnitSubType_RemoteIO is 1919512419 -- "coir" reversed for Intel, PowerPC would be 1668245874 -- "rioc"
-
 public handler NSArrayToString(in pNSArray as ObjcObject) returns String
   variable tNSArray as ObjcObject
   variable tNSString as ObjcObject
@@ -77,51 +73,26 @@ public handler NSArrayToString(in pNSArray as ObjcObject) returns String
   return StringFromNSString(tNSString)
 end handler
 
-private handler getAudioComponentDescriptionCharCode(in pConstant as Number) returns String
-   if pConstant is 1635085685 then
-      return "aumu"
-   else if pConstant is 1935764848 then
-      return "samp"
-   else if pConstant is 1684828960 then
-      return "dls "
-   else if pConstant is 1836284270 then
-      return "msyn"
-   else if pConstant is 1634758764 then
-      return "appl"
-   else if pConstant is 1635086197 then
-      return "auou"
-   else if pConstant is 1919512419 then
-      return "rioc"
-   else
-      return "????"
-   end if
+public handler getAudioComponentManagerTagNames() returns optional any
+   variable tAVAudioUnitsManagerInstance as optional ObjcObject
+   variable tNSArray as ObjcObject
+   variable tList as optional List
+   variable tString as String
+   unsafe
+     put objC_AVAudioUnitAUComponentManager() into tAVAudioUnitsManagerInstance
+     put objC_AVAudioUnitAUComponentManagerTagNames(tAVAudioUnitsManagerInstance) into tNSArray
+     put ListFromNSArray(tNSArray) into tList
+     -- log tList
+   end unsafe
+   combine tList with "\n" into tString
+   return tString
 end handler
 
-private handler getAudioComponentDescriptionCharCodeNum(in pFourCharCode as String) returns Number
-   if pFourCharCode is "aumu" then
-      return 1635085685
-   else if pFourCharCode is "samp" then
-      return 1935764848
-   else if pFourCharCode is "dls " then
-      return 1684828960
-   else if pFourCharCode is "msyn"  then
-      return 1836284270
-   else if pFourCharCode is "appl"  then
-      return 1634758764
-   else if pFourCharCode is "auou" then
-      return 1635086197
-   else if pFourCharCode is "rioc" then
-      return 1919512419
-   else
-      return 0
-   end if
-end handler
 
 public handler AVAudioUnitCMGetUnits() returns optional any
-
+   variable tAVAudioUnitsManagerInstance as optional ObjcObject
    variable tAudioComponentDescription as optional AudioComponentDescriptionParam
    variable tAudioComponentDescrParse as optional AudioComponentDescriptionReturn
-   variable tAVAudioUnitsManagerInstance as optional ObjcObject
    variable tMatchingtAudioComponentsNSArray as optional ObjcObject
    variable tAudioComponent as optional ObjcObject
    variable tAudioComponentsList as optional List
@@ -147,101 +118,153 @@ public handler AVAudioUnitCMGetUnits() returns optional any
    -- put getAudioComponentDescriptionCharCodeNum("appl") into tAudioComponentDescription[3] -- componentManufacturer
    -- put tComponentType into tAudioComponentDescription[4]
    -- put tComponentFlagsMask into tAudioComponentDescription[5]
-
-   put objC_AVAudioUnitGetAudioUnitsFromACDesc(tAVAudioUnitsManagerInstance,tAudioComponentDescription) into tMatchingtAudioComponentsNSArray
+   -- "typeName CONTAINS 'Effect'"
+   --if pSearchString is not nothing then
+      -- put "typeName CONTAINS '" & pSearchString &"'" into pSearchString
+      -- put "tags =''" & pSearchString &"'" into pSearchString
+      -- "tags IN {'Sampler', 'MIDI'}"
+      --put "tags IN ('" & pSearchString &"')" into pSearchString
+      -- put "tags = ('" & pSearchString &"')" into pSearchString
+      --put ObjC_NSPredicateFromMetadataQueryString(StringToNSString(pSearchString)) into tTempNSObj
+      --put objC_AVAudioUnitGetAudioUnitsFromNSPredicate(tAVAudioUnitsManagerInstance,tTempNSObj) into tMatchingtAudioComponentsNSArray
+   --else
+      put objC_AVAudioUnitGetAudioUnitsFromACDesc(tAVAudioUnitsManagerInstance,tAudioComponentDescription) into tMatchingtAudioComponentsNSArray
+   --end if
    -- log tMatchingtAudioUnitsNSArray
-   put ListFromNSArray(tMatchingtAudioComponentsNSArray) into tAudioComponentsList
-   -- log tMatchingtAudioUnitsList
+   if tMatchingtAudioComponentsNSArray is not nothing then
+      put ListFromNSArray(tMatchingtAudioComponentsNSArray) into tAudioComponentsList
+      -- log tMatchingtAudioUnitsList
 
-   put "" into rTempStr
-   repeat for each element tAudioComponent in tAudioComponentsList
+      put "" into rTempStr
+      repeat for each element tAudioComponent in tAudioComponentsList
 
-      put objC_AVAudioUnitGetName(tAudioComponent) into tTempNSObj
-      if tTempNSObj is not nothing then
-         put StringFromNSString(tTempNSObj) & "," after rTempStr
-      else
-         put "Unnammed Audio Component," after rTempStr
-      end if
+         put objC_AVAudioUnitGetName(tAudioComponent) into tTempNSObj
+         if tTempNSObj is not nothing then
+            put StringFromNSString(tTempNSObj) & "," after rTempStr
+         else
+            put "Unnammed Audio Component," after rTempStr
+         end if
 
-      put objC_AVAudioUnitGetManufacturer(tAudioComponent) into tTempNSObj
-      if tTempNSObj is not nothing then
-         put StringFromNSString(tTempNSObj) & "," after rTempStr
-      else
-         put "Unknown Manufacturer," after rTempStr
-      end if
+         put objC_AVAudioUnitGetManufacturer(tAudioComponent) into tTempNSObj
+         if tTempNSObj is not nothing then
+            put StringFromNSString(tTempNSObj) & "," after rTempStr
+         else
+            put "Unknown Manufacturer," after rTempStr
+         end if
 
-      put objC_AVAudioUnitGetVersionNSStr(tAudioComponent) into tTempNSObj
-      if tTempNSObj is not nothing then
-         put "v." & StringFromNSString(tTempNSObj) & "," after rTempStr
-      else
-         put "Unknown Version," after rTempStr
-      end if
+         put objC_AVAudioUnitGetVersionNSStr(tAudioComponent) into tTempNSObj
+         if tTempNSObj is not nothing then
+            put "v." & StringFromNSString(tTempNSObj) & "," after rTempStr
+         else
+            put "Unknown Version," after rTempStr
+         end if
       -- put objC_AVAudioUnitGetVersion(tAudioComponent) into tNumber -- NaturalUInt
       -- put tNumber formatted as string & newline after rTempStr
 
-      put objC_AVAudioUnitGetTypeName(tAudioComponent) into tTempNSObj
-      if tTempNSObj is not nothing then
-         put StringFromNSString(tTempNSObj) & "," after rTempStr
-      else
-         put "Unknown Type," after rTempStr
-      end if
-
-      if objC_AVAudioUnitGetHasMIDIInput(tAudioComponent) then
-         put "MIDI Input," after rTempStr
-      else
-         put "No MIDI In," after rTempStr
-      end if
-
-      put objC_AVAudioUnitGetArchitectures(tAudioComponent) into tTempNSObj -- an NS Array of Constants that corespond to CPU Architectures
-      put ListFromNSArray(tTempNSObj) into tNumList
-      repeat for each element tNumber in tNumList
-         -- log tNumber
-         -- ArchitecturePPC=0x00000012= 18 --- ArchitecturePPC64=0x01000012= 16777234   --- ArchitectureI386=0x00000007= 7 --- ArchitectureX86_64=0x01000007= 16777223
-         if tNumber = 18 then
-            put "PPC " after rTempStr
-         else if tNumber = 16777234 then
-            put "PPC64 " after rTempStr
-         else if tNumber = 7 then
-            put "x86 " after rTempStr
-         else if tNumber = 16777223 then
-            put "x86_64 " after rTempStr
+         put objC_AVAudioUnitGetTypeName(tAudioComponent) into tTempNSObj
+         if tTempNSObj is not nothing then
+            put StringFromNSString(tTempNSObj) & "," after rTempStr
+         else
+            put "Unknown Type," after rTempStr
          end if
+
+         if objC_AVAudioUnitGetHasMIDIInput(tAudioComponent) then
+            put "MIDI Input," after rTempStr
+         else
+            put "No MIDI In," after rTempStr
+         end if
+
+         put objC_AVAudioUnitGetArchitectures(tAudioComponent) into tTempNSObj -- an NS Array of Constants that corespond to CPU Architectures
+         put ListFromNSArray(tTempNSObj) into tNumList
+         repeat for each element tNumber in tNumList
+            -- log tNumber
+            -- ArchitecturePPC=0x00000012= 18 --- ArchitecturePPC64=0x01000012= 16777234   --- ArchitectureI386=0x00000007= 7 --- ArchitectureX86_64=0x01000007= 16777223
+            if tNumber = 18 then
+               put "PPC " after rTempStr
+            else if tNumber = 16777234 then
+               put "PPC64 " after rTempStr
+            else if tNumber = 7 then
+               put "x86 " after rTempStr
+            else if tNumber = 16777223 then
+               put "x86_64 " after rTempStr
+            end if
+         end repeat
+         if the last char of rTempStr is " " then
+            delete the last char of rTempStr
+         end if
+         put "," after rTempStr
+         --put objC_AVAudioNodeGetNumberOfInputs(tAudioComponent) into tTempNSObj
+         --put NumberFromNSNumber(tTempNSObj) & "," into tNumber
+         --put tNumber formatted as string & "," after rTempStr
+
+         --put objC_AVAudioNodeGetNumberOfOutputs(tAudioComponent) into tTempNSObj
+         --put NumberFromNSNumber(tTempNSObj) & "," into tNumber
+         --put tNumber formatted as string & "," after rTempStr
+
+         put objC_AVAudioUnitGetACDescription(tAudioComponent) into tAudioComponentDescrParse
+
+         put the char with code (element 4 of tAudioComponentDescrParse) after rTempStr
+         put the char with code (element 3 of tAudioComponentDescrParse) after rTempStr
+         put the char with code (element 2 of tAudioComponentDescrParse) after rTempStr
+         put the char with code (element 1 of tAudioComponentDescrParse) & "," after rTempStr
+
+         put the char with code (element 8 of tAudioComponentDescrParse) after rTempStr
+         put the char with code (element 7 of tAudioComponentDescrParse) after rTempStr
+         put the char with code (element 6 of tAudioComponentDescrParse) after rTempStr
+         put the char with code (element 5 of tAudioComponentDescrParse) & "," after rTempStr
+
+         put the char with code (element 12 of tAudioComponentDescrParse) after rTempStr
+         put the char with code (element 11 of tAudioComponentDescrParse) after rTempStr
+         put the char with code (element 10 of tAudioComponentDescrParse) after rTempStr
+         put the char with code (element 9 of tAudioComponentDescrParse) & "," after rTempStr
+
+         put element 13 of tAudioComponentDescrParse formatted as string & "," after rTempStr
+         put element 14 of tAudioComponentDescrParse formatted as string after rTempStr
+         put "\n" after rTempStr
       end repeat
-      if the last char of rTempStr is " " then
-         delete the last char of rTempStr
-      end if
-      put "," after rTempStr
-      --put objC_AVAudioNodeGetNumberOfInputs(tAudioComponent) into tTempNSObj
-      --put NumberFromNSNumber(tTempNSObj) & "," into tNumber
-      --put tNumber formatted as string & "," after rTempStr
-
-      --put objC_AVAudioNodeGetNumberOfOutputs(tAudioComponent) into tTempNSObj
-      --put NumberFromNSNumber(tTempNSObj) & "," into tNumber
-      --put tNumber formatted as string & "," after rTempStr
-
-      put objC_AVAudioUnitGetACDescription(tAudioComponent) into tAudioComponentDescrParse
-
-      put the char with code (element 4 of tAudioComponentDescrParse) after rTempStr
-      put the char with code (element 3 of tAudioComponentDescrParse) after rTempStr
-      put the char with code (element 2 of tAudioComponentDescrParse) after rTempStr
-      put the char with code (element 1 of tAudioComponentDescrParse) & "," after rTempStr
-
-      put the char with code (element 8 of tAudioComponentDescrParse) after rTempStr
-      put the char with code (element 7 of tAudioComponentDescrParse) after rTempStr
-      put the char with code (element 6 of tAudioComponentDescrParse) after rTempStr
-      put the char with code (element 5 of tAudioComponentDescrParse) & "," after rTempStr
-
-      put the char with code (element 12 of tAudioComponentDescrParse) after rTempStr
-      put the char with code (element 11 of tAudioComponentDescrParse) after rTempStr
-      put the char with code (element 10 of tAudioComponentDescrParse) after rTempStr
-      put the char with code (element 9 of tAudioComponentDescrParse) & "," after rTempStr
-
-      put element 13 of tAudioComponentDescrParse formatted as string & "," after rTempStr
-      put element 14 of tAudioComponentDescrParse formatted as string after rTempStr
-      put "\n" after rTempStr
-   end repeat
+   end if
    end unsafe
    return rTempStr
+end handler
+
+
+private handler getAudioComponentDescriptionCharCode(in pConstant as Number) returns String
+   if pConstant is 1635085685 then -- constant kAudioUnitType_MusicDevice is 1635085685 -- 'umua' reversed for Intel, PowerPC would be 1970107745 -- "aumu"
+      return "aumu"
+   else if pConstant is 1935764848 then -- constant kAudioUnitSubType_Sampler is 1935764848 -- 'pmas' reversed for Intel, PowerPC would be 1886216563 -- "samp"
+      return "samp"
+   else if pConstant is 1684828960 then -- constant kAudioUnitSubType_DLSSynth is  1684828960 -- ' sld' reversed for Intel, PowerPC would be 544435300 --"dls "
+      return "dls "
+   else if pConstant is 1836284270 then -- constant kAudioUnitSubType_MIDISynth is 1836284270 -- 'nysm' reversed for Intel, PowerPC would be 1853453165 --"msyn"
+      return "msyn"
+   else if pConstant is 1634758764 then -- constant kAudioUnitManufacturer_Apple is 1634758764 -- 'lppa' reversed for Intel, PowerPC would be 1819308129 -- "appl"
+      return "appl"
+   else if pConstant is 1635086197 then -- constant kAudioUnitType_Output is 1635086197 -- "uoua" reversed for Intel, PowerPC would be 1970238817 -- "auou"
+      return "auou"
+   else if pConstant is 1919512419 then -- constant kAudioUnitSubType_RemoteIO is 1919512419 -- "coir" reversed for Intel, PowerPC would be 1668245874 -- "rioc"
+      return "rioc"
+   else
+      return "????"
+   end if
+end handler
+private handler getAudioComponentDescriptionCharCodeNum(in pFourCharCode as String) returns Number
+   if pFourCharCode is "aumu" then
+      return 1635085685
+   else if pFourCharCode is "samp" then
+      return 1935764848
+   else if pFourCharCode is "dls " then
+      return 1684828960
+   else if pFourCharCode is "msyn"  then
+      return 1836284270
+   else if pFourCharCode is "appl"  then
+      return 1634758764
+   else if pFourCharCode is "auou" then
+      return 1635086197
+   else if pFourCharCode is "rioc" then
+      return 1919512419
+   else
+      return 0
+   end if
 end handler
 
 end library
