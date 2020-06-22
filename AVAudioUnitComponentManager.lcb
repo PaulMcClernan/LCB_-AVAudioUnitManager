@@ -18,6 +18,7 @@ metadata svgicon is "M66.43,52.07c-0.71,0.32-1.48,0.56-2.31,0.78c-2.35,0.65-5.44
 ---------------------------------------------------------------------------------------------------------------------------
 public foreign type AudioComponentDescriptionReturn binds to "MCAggregateTypeInfo:bbbbbbbbbbbbjj" -- 3x 4CharOSTypes & 2X UInt32s
 public foreign type AudioComponentDescriptionParam binds to "MCAggregateTypeInfo:jjjjj" -- 5x OSType/UInt32s
+public foreign type FourCharCode binds to "MCAggregateTypeInfo:bbbb"
 
 private foreign handler objC_NSURLURLWithString(in pURLString as ObjcId) returns ObjcId binds to "objc:NSURL.+URLWithString:"
 private foreign handler objC_NSURLfileOrDirURLWithPath(in pPathString as ObjcId, in pIsDir as CBool) returns ObjcId binds to "objc:.NSURL.+fileURLWithPath:isDirectory:"
@@ -88,29 +89,71 @@ public handler getAudioComponentManagerTagNames() returns optional any
    return tString
 end handler
 
-
-public handler AVAudioUnitCMGetUnits() returns optional any
+public handler AVAudioUnitCMGetUnits(in pAUType as optional String, in pAUSubType as optional String, in pAUManufacturer as optional String) returns optional any
    variable tAVAudioUnitsManagerInstance as optional ObjcObject
    variable tAudioComponentDescription as optional AudioComponentDescriptionParam
    variable tAudioComponentDescrParse as optional AudioComponentDescriptionReturn
    variable tMatchingtAudioComponentsNSArray as optional ObjcObject
    variable tAudioComponent as optional ObjcObject
    variable tAudioComponentsList as optional List
+   variable tFourCharCode as FourCharCode
+   variable tFourCharData as Data
+
    variable tNumList as optional List
    variable tNSNumber as optional ObjcObject
    variable tNumber as optional Number
    variable tTempNSObj as optional ObjcObject
    variable rTempStr as optional String
+   variable tTempStr as optional String
    variable tComponentType as UInt32
    variable tComponentSubType as UInt32
    variable tComponentManufacturer as UInt32
    variable tComponentFlags as UInt32
    variable tComponentFlagsMask as UInt32
 
+   put [0,0,0,0] into tFourCharCode
    unsafe
-   put objC_AVAudioUnitAUComponentManager() into tAVAudioUnitsManagerInstance
+   ------------------- Get Shared AUComponentManager -------------------------
+    put objC_AVAudioUnitAUComponentManager() into tAVAudioUnitsManagerInstance
+    ----------------------------- ComponentType ------------------------------
+    if pAUType is "Music Devices" then
+         put 1635085685 into tComponentType
+   else if pAUType is "Audio FX" then
+         put 1635083896 into tComponentType
+   else
+         put 0 into tComponentType
+   end if
+  ----------------------------- Manufacturers -------------------------
+  if pAUManufacturer is not "" then
+     log pAUManufacturer
+     if pAUManufacturer is "Apple" then
+        put 1634758764 into tComponentManufacturer
+     else if pAUManufacturer is "Native Instruments" then
+        put 760105261 into tComponentManufacturer
+     else if pAUManufacturer is "Roland Cloud"  then
+        put 1383023468 into tComponentManufacturer
+     else
+        put [(the code of char 4 of pAUManufacturer),(the code of char 3 of pAUManufacturer),\
+        (the code of char 2 of pAUManufacturer),(the code of char 1 of pAUManufacturer)] into tFourCharCode
+        -- push (the code of char 1 of pAUManufacturer) onto element 4 of tFourCharCode
+        log tFourCharCode
+        put the byte with code (element 1 of tFourCharCode) into tFourCharData
+        put the byte with code (element 2 of tFourCharCode) after tFourCharData
+        put the byte with code (element 3 of tFourCharCode) after tFourCharData
+        put the byte with code (element 4 of tFourCharCode) after tFourCharData
+        log tFourCharData
+        -- push (the code of char 1 of pAUManufacturer) onto element 4 of tFourCharCode
 
-   put [0,0,0,0,0] into tAudioComponentDescription
+       --- GetUint32FromFourCharCode -- "MCAggregateTypeInfo:bbbb"
+        ---- FourCharCode to UInt32 -----
+        put tFourCharData into tComponentManufacturer
+        -- put 0 into tComponentManufacturer
+     end if
+   else
+        put 0 into tComponentManufacturer
+   end if
+
+    put [tComponentType,0,tComponentManufacturer,0,0] into tAudioComponentDescription
    -- AudioComponentDescription feilds are componentType,componentSubType,componentManufacturer,componentFlags = 0,componentFlagsMask = 0
    -- For searching for AudioUnits, any feilds with 0 are wildcards
    -- put getAudioComponentDescriptionCharCodeNum("aumu") into tAudioComponentDescription[1] -- componentType
@@ -222,11 +265,10 @@ public handler AVAudioUnitCMGetUnits() returns optional any
          put element 14 of tAudioComponentDescrParse formatted as string after rTempStr
          put "\n" after rTempStr
       end repeat
-   end if
+    end if
    end unsafe
    return rTempStr
 end handler
-
 
 private handler getAudioComponentDescriptionCharCode(in pConstant as Number) returns String
    if pConstant is 1635085685 then -- constant kAudioUnitType_MusicDevice is 1635085685 -- 'umua' reversed for Intel, PowerPC would be 1970107745 -- "aumu"
@@ -239,6 +281,10 @@ private handler getAudioComponentDescriptionCharCode(in pConstant as Number) ret
       return "msyn"
    else if pConstant is 1634758764 then -- constant kAudioUnitManufacturer_Apple is 1634758764 -- 'lppa' reversed for Intel, PowerPC would be 1819308129 -- "appl"
       return "appl"
+   else if pConstant is 760105261 then -- constant kAudioUnitManufacturer_Apple is 1634758764 -- 'lppa' reversed for Intel, PowerPC would be 1819308129 -- "appl"
+      return "-NI-"
+   else if pConstant is 1383023468 then -- constant kAudioUnitManufacturer_Apple is 1634758764 -- 'lppa' reversed for Intel, PowerPC would be 1819308129 -- "appl"
+      return "RoCl"
    else if pConstant is 1635086197 then -- constant kAudioUnitType_Output is 1635086197 -- "uoua" reversed for Intel, PowerPC would be 1970238817 -- "auou"
       return "auou"
    else if pConstant is 1919512419 then -- constant kAudioUnitSubType_RemoteIO is 1919512419 -- "coir" reversed for Intel, PowerPC would be 1668245874 -- "rioc"
@@ -258,6 +304,10 @@ private handler getAudioComponentDescriptionCharCodeNum(in pFourCharCode as Stri
       return 1836284270
    else if pFourCharCode is "appl"  then
       return 1634758764
+   else if pFourCharCode is "-NI-"  then
+      return 760105261
+   else if pFourCharCode is "RoCl"  then
+      return 1383023468
    else if pFourCharCode is "auou" then
       return 1635086197
    else if pFourCharCode is "rioc" then
