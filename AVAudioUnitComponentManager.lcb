@@ -317,4 +317,31 @@ private handler getAudioComponentDescriptionCharCodeNum(in pFourCharCode as Stri
    end if
 end handler
 
+--public type FourCharCodeUInt32 is UInt32
+public foreign type FourCharCodeUInt32 binds to "MCAggregateTypeInfo:j"
+foreign handler FourCharCodeToUInt32(out rAggregate as FourCharCodeUInt32, in pPointer as Pointer, in pSize as UIntSize) returns nothing binds to "c:memcpy"
+
+public handler getIntegerFromFourCharCode(in pStr as any) returns optional any
+    variable tData as Data
+    variable tObj as ObjCId
+    variable tFourCharCodeUInt32 as FourCharCodeUInt32
+    variable tPointer as Pointer
+       -- put byte 1 to 4 of pStr into tData
+       -- log tData
+      put the byte with code (the code of char 4 of pStr) into tData
+      get the code of char 4 of pStr
+      log the result
+
+      put the byte with code (the code of char 3 of pStr) after tData
+      put the byte with code (the code of char 2 of pStr) after tData
+      put the byte with code (the code of char 1 of pStr) after tData
+      put DataToNSData(tData) into tObj
+      put PointerFromObjcObject(tObj) into tPointer
+       unsafe
+         FourCharCodeToUInt32(tFourCharCodeUInt32,tPointer,4)
+        -- log element 1 of tFourCharCodeUInt32
+       end unsafe
+       return tFourCharCodeUInt32
+end handler
+
 end library
