@@ -99,11 +99,14 @@ public handler getFourCharCodeFromUint32( in pNum as optional any) returns optio
    variable tTempStr as String
    variable tNum as Number
    variable tBinsStr as String
-   -- put ( pNum converted from base 10 to base 2 ) into tBitsStr
-
    put ( pNum converted from base 10 to base 16 ) into tBinsStr
-   -- log tBinsStr
-   -- log the number of chars in tBinsStr
+   if (the number of chars in tBinsStr) < 8 then
+      put 8 - (the number of chars in tBinsStr) into tNum
+      repeat tNum times
+         put "0" before tBinsStr
+      end repeat
+      log tBinsStr
+   end if
     put ( (char 1 to 2 of tBinsStr) converted from base 16 to base 10 ) into tTempStr
     put the char with code (tTempStr parsed as number) into tStr
     put ( (char 3 to 4 of tBinsStr) converted from base 16 to base 10 ) into tTempStr
@@ -112,11 +115,8 @@ public handler getFourCharCodeFromUint32( in pNum as optional any) returns optio
     put the char with code (tTempStr parsed as number) after tStr
     put ( (char 7 to 8 of tBinsStr) converted from base 16 to base 10 ) into tTempStr
     put the char with code (tTempStr parsed as number) after tStr
-
    return tStr
 end handler
-
-
 
 public handler getAudioComponentManagerTagNames() returns optional any
    variable tAVAudioUnitsManagerInstance as optional ObjcObject
