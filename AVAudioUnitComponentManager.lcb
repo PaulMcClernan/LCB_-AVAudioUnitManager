@@ -57,6 +57,8 @@ private foreign handler objC_AVAudioUnitGetManufacturer(in pAVAudioUnit as ObjcI
 private foreign handler objC_AVAudioUnitGetTypeName(in pAVAudioUnit as ObjcId) returns ObjcId binds to "objc:AVAudioUnitComponent.typeName"
 private foreign handler objC_AVAudioUnitGetVersion(in pAVAudioUnit as ObjcId) returns UInt64 binds to "objc:AVAudioUnitComponent.version"
 private foreign handler objC_AVAudioUnitGetAudioUnit(in pAVAudioUnit as ObjcId) returns ObjcId binds to "objc:AVAudioUnitComponent.audioUnit" -- macOS 10.11+ only
+private foreign handler objC_AVAudioUnitGetConfignDict(in pAVAudioUnit as ObjcId) returns ObjcId binds to "objc:AVAudioUnitComponent.configurationDictionary"
+private foreign handler objC_AVAudioUnitGetIsSandboxSafe(in pAVAudioUnit as ObjcId) returns CBool binds to "objc:AVAudioUnitComponent.isSandboxSafe"
 
 private foreign handler c_AudioUnitUninitialize(in pAVAUSampler as ObjcId) returns CSInt binds to "c:AudioUnit.framework>AudioUnitUninitialize"
 private foreign handler c_AudioUnitInitialize(in pAVAUSampler as ObjcId) returns CSInt binds to "c:AudioUnit.framework>AudioUnitInitialize"
@@ -155,6 +157,8 @@ public handler getAudioComponentManagerTagNames() returns optional any
 end handler
 
 public handler AVAudioUnitCMGetUnits(in pAUType as optional String, in pAUSubType as optional String, in pAUManufacturer as optional String) returns optional any
+   variable tCBool as Boolean
+   variable tArray as Array
    variable tNumList as optional List
    variable tNSNumber as optional ObjcObject
    variable tNumber as optional Number
@@ -189,6 +193,12 @@ public handler AVAudioUnitCMGetUnits(in pAUType as optional String, in pAUSubTyp
    else
       put 0 into tComponentType
    end if
+   ------------------------------- AUSubType --------------------------
+   if pAUSubType is not "" then
+      put getIntegerFromFourCharCodeBigEndian(pAUSubType) into tComponentSubType
+    else
+         put 0 into tComponentSubType
+    end if
   ----------------------------- Manufacturers -------------------------
   if pAUManufacturer is not "" then
      -- log pAUManufacturer
@@ -203,7 +213,7 @@ public handler AVAudioUnitCMGetUnits(in pAUType as optional String, in pAUSubTyp
         put 0 into tComponentManufacturer
    end if
 
-    put [tComponentType,0,tComponentManufacturer,0,0] into tAudioComponentDescription
+    put [tComponentType,tComponentSubType,tComponentManufacturer,0,0] into tAudioComponentDescription
     put objC_AVAudioUnitGetAudioUnitsFromACDesc(tAVAudioUnitsManagerInstance,tAudioComponentDescription) into tMatchingtAudioComponentsNSArray
    -- AudioComponentDescription feilds are componentType,componentSubType,componentManufacturer,componentFlags = 0,componentFlagsMask = 0
    -- For searching for AudioUnits, any feilds with 0 are wildcards
@@ -225,104 +235,138 @@ public handler AVAudioUnitCMGetUnits(in pAUType as optional String, in pAUSubTyp
 
          put objC_AVAudioUnitGetName(tAudioComponent) into tTempNSObj
          if tTempNSObj is not nothing then
-            put StringFromNSString(tTempNSObj) & "," after rTempStr
+            put StringFromNSString(tTempNSObj) after rTempStr
          else
-            put "Unnammed," after rTempStr
+            put "Unnammed" after rTempStr
          end if
+         put "\t" after rTempStr
 
          put objC_AVAudioUnitGetManufacturer(tAudioComponent) into tTempNSObj
          if tTempNSObj is not nothing then
-            put StringFromNSString(tTempNSObj) & "," after rTempStr
+            put StringFromNSString(tTempNSObj) after rTempStr
          else
-            put "Unknown," after rTempStr
+            put "Unknown" after rTempStr
          end if
+         put "\t" after rTempStr
 
+         -- put objC_AVAudioUnitGetVersion(tAudioComponent) into tNumber -- NaturalUInt
+         -- put tNumber formatted as string & newline after rTempStr
          put objC_AVAudioUnitGetVersionNSStr(tAudioComponent) into tTempNSObj
          if tTempNSObj is not nothing then
-            put "v." & StringFromNSString(tTempNSObj) & "," after rTempStr
+            put "v." & StringFromNSString(tTempNSObj) after rTempStr
          else
-            put "Unknown," after rTempStr
+            put "Unknown" after rTempStr
          end if
-      -- put objC_AVAudioUnitGetVersion(tAudioComponent) into tNumber -- NaturalUInt
-      -- put tNumber formatted as string & newline after rTempStr
+         put "\t" after rTempStr
 
          put objC_AVAudioUnitGetTypeName(tAudioComponent) into tTempNSObj
          if tTempNSObj is not nothing then
-            put StringFromNSString(tTempNSObj) & "," after rTempStr
+            put StringFromNSString(tTempNSObj) after rTempStr
          else
-            put "Unknown," after rTempStr
+            put objC_AVAudioUnitGetACDescription(tAudioComponent) into tAudioComponentDescrParse
+            put the char with code (element 4 of tAudioComponentDescrParse) & the char with code (element 3 of tAudioComponentDescrParse) & \
+               the char with code (element 2 of tAudioComponentDescrParse) & the char with code (element 1 of tAudioComponentDescrParse) into tTempStr
+               -- log tTempStr
+            if tTempStr is "auvw" then
+               put "UI View" after rTempStr
+            else if tTempStr is "aunt" then
+               put "System Out Unit" after rTempStr
+            else
+               put "Unknown" after rTempStr
+               log "Unknown ComponentType = " & tTempStr
+            end if
          end if
+         put "\t" after rTempStr
 
          if objC_AVAudioUnitGetHasMIDIInput(tAudioComponent) then
-            put "MIDI Input," after rTempStr
+            put "MIDI In," after rTempStr
          else
             put "No MIDI In," after rTempStr
          end if
-
-         put objC_AVAudioUnitGetArchitectures(tAudioComponent) into tTempNSObj -- an NS Array of Constants that corespond to CPU Architectures
-         put ListFromNSArray(tTempNSObj) into tNumList
-         repeat for each element tNumber in tNumList
-            -- ArchitecturePPC=0x00000012= 18 --- ArchitecturePPC64=0x01000012= 16777234   --- ArchitectureI386=0x00000007= 7 --- ArchitectureX86_64=0x01000007= 16777223
-            if tNumber = 18 then
-               put "PPC " after rTempStr
-            else if tNumber = 16777234 then
-               put "PPC64 " after rTempStr
-            else if tNumber = 7 then
-               put "x86 " after rTempStr
-            else if tNumber = 16777223 then
-               put "x86_64 " after rTempStr
-            else if tNumber = 16777228 then
-               put "ARM64 " after rTempStr
-            end if
-         end repeat
-         if the last char of rTempStr is " " then
+         if objC_AVAudioUnitGetHasMIDIOutput(tAudioComponent) then
+            put "MIDI Out," after rTempStr
+         else
+            put "No MIDI Out," after rTempStr
+         end if
+         if the last char of rTempStr is "," then
             delete the last char of rTempStr
          end if
-         put "," after rTempStr
+         put "\t" after rTempStr
+
+         ----------------------- Architectures ---------------------
+         put objC_AVAudioUnitGetArchitectures(tAudioComponent) into tTempNSObj -- an NS Array of Constants that corespond to CPU Architectures
+         put ListFromNSArray(tTempNSObj) into tNumList
+         if tNumList is the empty list then
+            put "Unknown" after rTempStr
+         else
+            repeat for each element tNumber in tNumList
+            -- ArchitecturePPC=0x00000012= 18 --- ArchitecturePPC64=0x01000012= 16777234   --- ArchitectureI386=0x00000007= 7 --- ArchitectureX86_64=0x01000007= 16777223
+               if tNumber = 18 then
+                     put "PPC," after rTempStr
+                  else if tNumber = 16777234 then
+                     put "PPC64," after rTempStr
+                  else if tNumber = 7 then
+                     put "x86," after rTempStr
+                  else if tNumber = 16777223 then
+                     put "x86_64," after rTempStr
+                  else if tNumber = 16777228 then
+                     put "ARM64," after rTempStr
+                  end if
+            end repeat
+            if the last char of rTempStr is "," then
+               delete the last char of rTempStr
+            end if
+         end if
+         put "\t" after rTempStr
 
          --put objC_AVAudioNodeGetNumberOfInputs(tAudioComponent) into tTempNSObj
          --put NumberFromNSNumber(tTempobjC_AVAudioNodeGetNumberOfInputsNSObj) & "," into tNumber
          --put tNumber formatted as string & "," after rTempStr
-
          --put objC_AVAudioNodeGetNumberOfOutputs(tAudioComponent) into tTempNSObj
          --put NumberFromNSNumber(tTempNSObj) & "," into tNumber
          --put tNumber formatted as string & "," after rTempStr
-
+         -- log tAudioComponentDescrParse
          put objC_AVAudioUnitGetACDescription(tAudioComponent) into tAudioComponentDescrParse
          --- Type OStype ---
-         put the char with code (element 4 of tAudioComponentDescrParse) after rTempStr
-         put the char with code (element 3 of tAudioComponentDescrParse) after rTempStr
-         put the char with code (element 2 of tAudioComponentDescrParse) after rTempStr
-         put the char with code (element 1 of tAudioComponentDescrParse) & "," after rTempStr
+         put the char with code (element 4 of tAudioComponentDescrParse) & the char with code (element 3 of tAudioComponentDescrParse) & \
+            the char with code (element 2 of tAudioComponentDescrParse) & the char with code (element 1 of tAudioComponentDescrParse) & "\t" after rTempStr
          --- SubType OStype ---
-         put the char with code (element 8 of tAudioComponentDescrParse) after rTempStr
-         put the char with code (element 7 of tAudioComponentDescrParse) after rTempStr
-         put the char with code (element 6 of tAudioComponentDescrParse) after rTempStr
-         put the char with code (element 5 of tAudioComponentDescrParse) & "," after rTempStr
+         put the char with code (element 8 of tAudioComponentDescrParse) & the char with code (element 7 of tAudioComponentDescrParse) & \
+            the char with code (element 6 of tAudioComponentDescrParse) & the char with code (element 5 of tAudioComponentDescrParse) & "\t" after rTempStr
          --- Manufacturer OStype ---
-         put the char with code (element 12 of tAudioComponentDescrParse) after rTempStr
-         put the char with code (element 11 of tAudioComponentDescrParse) after rTempStr
-         put the char with code (element 10 of tAudioComponentDescrParse) after rTempStr
-         put the char with code (element 9 of tAudioComponentDescrParse) & "," after rTempStr
+         put the char with code (element 12 of tAudioComponentDescrParse) & the char with code (element 11 of tAudioComponentDescrParse) & \
+            the char with code (element 10 of tAudioComponentDescrParse)  & the char with code (element 9 of tAudioComponentDescrParse) & "\t" after rTempStr
          ------- Flags ------
          --put getBitFeild( element 13 of tAudioComponentDescrParse ) & "," after rTempStr -- ComponentFlags
          --put getBitFeild( element 14 of tAudioComponentDescrParse ) & "," after rTempStr -- ComponentFlagsMask
          -- put element 13 of tAudioComponentDescrParse formatted as string & "," after rTempStr
          -- put element 14 of tAudioComponentDescrParse formatted as string after rTempStr
+         put objC_AVAudioUnitGetIsSandboxSafe( tAudioComponent ) into tCBool
+         if tCBool is true then
+            put "ture \t" after rTempStr
+         else
+            put "false \t" after rTempStr
+         end if
+
          --------- component URL -----------------
          put objC_AVAudioUnitGetComponentURL( tAudioComponent ) into tTempNSObj
          put objC_NSURLGetAbsoluteString(tTempNSObj) into tTempNSObj
          if tTempNSObj is not nothing then
-            put StringFromNSString(tTempNSObj) & "," after rTempStr
+            put StringFromNSString(tTempNSObj) & "\t" after rTempStr
          end if
          --------- component Icon URL -----------------
          put nothing into tTempNSObj
          put objC_AVAudioUnitGetIconURL( tAudioComponent ) into tTempNSObj
          put objC_NSURLGetPath(tTempNSObj) into tTempNSObj
          if tTempNSObj is not nothing then
-            put StringFromNSString(tTempNSObj) & "," after rTempStr
+            put StringFromNSString(tTempNSObj) & "\t" after rTempStr
          end if
          -----------------------------------------------------------
+        -- configurationDictionary
+        -- put objC_AVAudioUnitGetConfignDict(tAudioComponent) into tTempNSObj
+        -- put ArrayFromNSDictionary(tTempNSObj) into tArray
+        -- log tArray
+
          put "\n" after rTempStr
       end repeat
     end if
