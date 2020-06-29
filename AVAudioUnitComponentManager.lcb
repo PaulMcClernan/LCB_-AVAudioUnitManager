@@ -393,7 +393,8 @@ public handler AVAudioUnitCMGetUnits(in pAUType as optional String, in pAUSubTyp
         -- configurationDictionary
         -- put objC_AVAudioUnitGetConfignDict(tAVAUAudioComponent) into tElement-- this seems to be unused -- returns <null>
         -- log tElement
-
+        
+        put "\n" after rTempStr
       end repeat
     end if
    end unsafe
