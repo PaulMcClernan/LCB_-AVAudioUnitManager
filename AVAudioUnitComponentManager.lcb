@@ -40,7 +40,6 @@ public foreign handler ObjC_NSPredicateFromMetadataQueryString(in pFormatNSStrin
 
 private foreign handler objC_AVAudioUnitAUComponentManager() returns ObjcId binds to "objc:AVAudioUnitComponentManager.+sharedAudioUnitComponentManager"
 private foreign handler objC_AVAudioUnitAUComponentManagerTagNames(in pSharedAudioUnitComponentManager as ObjcId) returns ObjcId binds to "objc:AVAudioUnitComponentManager.tagNames"
--- private foreign handler objC_AVAudioUnitAUComponentManagerTagNames(in pSharedAudioUnitComponentManager as ObjcId) returns ObjcId binds to "objc:AVAudioUnitComponentManager.standardLocalizedTagNames"
 private foreign handler objC_AVAudioUnitGetAudioUnitsFromACDesc(in pSharedAudioUnitComponentManager as ObjcId, in pAudioComponentDescription as AudioComponentDescription) returns ObjcId \
                         binds to "objc:AVAudioUnitComponentManager.-componentsMatchingDescription:"
 private foreign handler objC_AVAudioUnitGetAudioUnitsFromNSPredicate(in pSharedAudioUnitComponentManager as ObjcId, in pNSPredicate as ObjcId) returns ObjcId \
@@ -380,14 +379,15 @@ public handler AVAudioUnitCMGetUnits(in pAUType as optional String, in pAUSubTyp
             --put StringFromNSString(tTempNSObj) & "\t" after rTempStr
          --end if
          --------- component Icon URL -----------------
-                  --put nothing into tTempNSObj
+         --put nothing into tTempNSObj
          --put objC_AVAudioUnitGetIconURL( tAVAUAudioComponent ) into tTempNSObj
          -- put objC_NSURLGetPath(tTempNSObj) into tTempNSObj
          --if tTempNSObj is not nothing then
          ---   put StringFromNSString(tTempNSObj) & "\t" after rTempStr
          --end if
          -----------------------------------------------------------
-         put objC_AVAudioUnitComponentGetComponent( tAVAUAudioComponent ) into tTempNSObj -- Use to get underlying Audio Component for use with lower level Core Audio API
+         ---------- CRASHES LC ENGINE:
+         -- put objC_AVAudioUnitComponentGetComponent( tAVAUAudioComponent ) into tTempNSObj -- Use to get underlying Audio Component for use with lower level Core Audio API
          -- log tElement
 
         -- configurationDictionary
