@@ -61,6 +61,7 @@ private foreign handler objC_AVAudioUnitGetIsSandboxSafe(in pAVAudioUnit as Objc
 private foreign handler objC_AVAudioUnitComponentHasCustomView(in pAVAudioUnit as ObjcId) returns CBool binds to "objc:AVAudioUnitComponent.hasCustomView"
 private foreign handler objC_AVAudioUnitComponentGetAllTagNames(in pAVAudioUnit as ObjcId) returns ObjcId binds to "objc:AVAudioUnitComponent.allTagNames"
 private foreign handler objC_AVAudioUnitComponentGetComponent(in pAVAudioUnit as ObjcId) returns optional any binds to "objc:AVAudioUnitComponent.audioComponent"
+private foreign handler objC_AVAudioUnitComponentPassesValidation(in pAVAudioUnit as ObjcId) returns CBool binds to "objc:AVAudioUnitComponent.passesAUVal"
 
 private foreign handler c_AudioUnitUninitialize(in pAVAUSampler as ObjcId) returns CSInt binds to "c:AudioUnit.framework>AudioUnitUninitialize"
 private foreign handler c_AudioUnitInitialize(in pAVAUSampler as ObjcId) returns CSInt binds to "c:AudioUnit.framework>AudioUnitInitialize"
@@ -341,16 +342,17 @@ public handler AVAudioUnitCMGetUnits(in pAUType as optional String, in pAUSubTyp
          --put getBitFeild( element 14 of tAudioComponentDescrParse ) & "," after rTempStr -- ComponentFlagsMask
          -- put element 13 of tAudioComponentDescrParse formatted as string & "," after rTempStr
          -- put element 14 of tAudioComponentDescrParse formatted as string after rTempStr
+
          put objC_AVAudioUnitGetIsSandboxSafe( tAVAUAudioComponent ) into tCBool
          if tCBool is true then
-            put "ture \t" after rTempStr
+            put "true \t" after rTempStr
          else
             put "false \t" after rTempStr
          end if
 
          put objC_AVAudioUnitComponentHasCustomView( tAVAUAudioComponent ) into tCBool
          if tCBool is true then
-            put "ture \t" after rTempStr
+            put "true \t" after rTempStr
          else
             put "false \t" after rTempStr
          end if
@@ -393,7 +395,13 @@ public handler AVAudioUnitCMGetUnits(in pAUType as optional String, in pAUSubTyp
         -- configurationDictionary
         -- put objC_AVAudioUnitGetConfignDict(tAVAUAudioComponent) into tElement-- this seems to be unused -- returns <null>
         -- log tElement
-        
+        put objC_AVAudioUnitComponentPassesValidation( tAVAUAudioComponent ) into tCBool
+        if tCBool is true then
+           put "true \t" after rTempStr
+        else
+           put "false \t" after rTempStr
+        end if
+
         put "\n" after rTempStr
       end repeat
     end if
