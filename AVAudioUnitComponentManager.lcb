@@ -89,6 +89,7 @@ public handler getIntegerFromFourCharCodeLittleEndian(in pStr as String) returns
    put tUint32 + (the code of char 1 of pStr) into tUint32
    return tUint32
 end handler
+
 public handler getIntegerFromFourCharCodeBigEndian(in pStr as String) returns optional Uint32
    variable tUint32 as Uint32
    put (the code of char 1 of pStr) * 16777216 into tUint32
@@ -105,23 +106,31 @@ public handler getFourCharCodeFromUint32( in pNum as optional any) returns optio
    variable tTempStr as String
    variable tNum as Number
    variable tBinsStr as String
-   put ( pNum converted from base 10 to base 16 ) into tBinsStr
-   if (the number of chars in tBinsStr) < 8 then
-      put 8 - (the number of chars in tBinsStr) into tNum
-      repeat tNum times
-         put "0" before tBinsStr
-      end repeat
-      -- log tBinsStr
+   log pNum
+   if pNum is not nothing then
+      if pNum is a number then
+         put pNum formatted as string into pNum
+      end if
+      put pNum converted from base 10 to base 16 into tBinsStr
+      if (the number of chars in tBinsStr) < 8 then
+         put 8 - (the number of chars in tBinsStr) into tNum
+         repeat tNum times
+            put "0" before tBinsStr
+         end repeat
+         -- log tBinsStr
+      end if
+       put ( (char 1 to 2 of tBinsStr) converted from base 16 to base 10 ) into tTempStr
+       put the char with code (tTempStr parsed as number) into tStr
+       put ( (char 3 to 4 of tBinsStr) converted from base 16 to base 10 ) into tTempStr
+       put the char with code (tTempStr parsed as number) after tStr
+       put ( (char 5 to 6 of tBinsStr) converted from base 16 to base 10 ) into tTempStr
+       put the char with code (tTempStr parsed as number) after tStr
+       put ( (char 7 to 8 of tBinsStr) converted from base 16 to base 10 ) into tTempStr
+       put the char with code (tTempStr parsed as number) after tStr
+      return tStr
+   else
+      return the empty string
    end if
-    put ( (char 1 to 2 of tBinsStr) converted from base 16 to base 10 ) into tTempStr
-    put the char with code (tTempStr parsed as number) into tStr
-    put ( (char 3 to 4 of tBinsStr) converted from base 16 to base 10 ) into tTempStr
-    put the char with code (tTempStr parsed as number) after tStr
-    put ( (char 5 to 6 of tBinsStr) converted from base 16 to base 10 ) into tTempStr
-    put the char with code (tTempStr parsed as number) after tStr
-    put ( (char 7 to 8 of tBinsStr) converted from base 16 to base 10 ) into tTempStr
-    put the char with code (tTempStr parsed as number) after tStr
-   return tStr
 end handler
 
 public handler getBitFeild( in pNum as optional any) returns optional String
