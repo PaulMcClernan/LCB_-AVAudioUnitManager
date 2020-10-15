@@ -63,6 +63,9 @@ private foreign handler objC_AVAudioUnitComponentGetAllTagNames(in pAVAudioUnit 
 private foreign handler objC_AVAudioUnitComponentGetComponent(in pAVAudioUnit as ObjcId) returns optional any binds to "objc:AVAudioUnitComponent.audioComponent"
 private foreign handler objC_AVAudioUnitComponentPassesValidation(in pAVAudioUnit as ObjcId) returns CBool binds to "objc:AVAudioUnitComponent.passesAUVal"
 
+private foreign handler objC_AVAudioUnitInstanceWithComponentDescription(in pAudioComponentDescription as AudioComponentDescription, pAudioComponentInstantiationOptions as UInt32, in pCompletionHandler as any) \
+                                                                        returns ObjcId binds to "objc:AVAudioUnit.+instantiateWithComponentDescription:options:completionHandler:"
+
 private foreign handler c_AudioUnitUninitialize(in pAVAUSampler as ObjcId) returns CSInt binds to "c:AudioUnit.framework>AudioUnitUninitialize"
 private foreign handler c_AudioUnitInitialize(in pAVAUSampler as ObjcId) returns CSInt binds to "c:AudioUnit.framework>AudioUnitInitialize"
 private foreign handler c_AudioUnitGetProperty(in pAudioUnit as ObjcId,in pPropertyID as UInt32,in pScope as UInt32, in pElement as UInt32, \
