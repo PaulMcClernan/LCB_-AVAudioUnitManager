@@ -1,24 +1,26 @@
 import module community.appleavaucomponentmanager.paulmcclernan
   use com.livecode.objc
   use com.livecode.foreign
+  use com.livecode.engine
   use com.livecode.arithmetic
+  use com.livecode.binary
+  use com.livecode.list
+  use com.livecode.logic
+  use com.livecode.string
+  use com.livecode.type
   use com.livecode.byte
   use com.livecode.char
   use com.livecode.math
-  use com.livecode.binary
-  use com.livecode.string
-  use com.livecode.list
-  use com.livecode.logic
-  use com.livecode.type
   use com.livecode.typeconvert
   use com.livecode.array
-  use com.livecode.engine
   foreign type AudioComponentDescriptionReturn
   foreign type AudioComponentDescription
   foreign handler ObjC_NSArrayAlloc() returns ObjcRetainedId
   foreign handler ObjC_NSArrayComponentsJoinedByString(in pNSMutableArray as ObjcId, in pNSArray as ObjcId) returns ObjcId
   foreign handler ObjC_NSPredicateWithFormat(in pURLString as ObjcId) returns ObjcId
   foreign handler ObjC_NSPredicateFromMetadataQueryString(in pURLString as ObjcId) returns ObjcId
+  handler AUInstanceCompletionHandler(in pContext as optional ObjcBlockPointer, in pAVAudioUnit as optional any, in pNSError as optional any, in pSomething as optional any) returns optional any
+  handler AVAudioUnitInitWithDescr(in pAUType as optional String, in pAUSubType as optional String, in pAUManufacturer as optional String) returns optional any
   handler NSArrayToString(in pNSArray as ObjcObject) returns String
   handler getIntegerFromFourCharCodeLittleEndian(in pStr as String) returns optional UInt32
   handler getIntegerFromFourCharCodeBigEndian(in pStr as String) returns optional UInt32

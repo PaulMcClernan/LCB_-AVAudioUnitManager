@@ -63,8 +63,18 @@ private foreign handler objC_AVAudioUnitComponentGetAllTagNames(in pAVAudioUnit 
 private foreign handler objC_AVAudioUnitComponentGetComponent(in pAVAudioUnit as ObjcId) returns optional any binds to "objc:AVAudioUnitComponent.audioComponent"
 private foreign handler objC_AVAudioUnitComponentPassesValidation(in pAVAudioUnit as ObjcId) returns CBool binds to "objc:AVAudioUnitComponent.passesAUVal"
 
-private foreign handler objC_AVAudioUnitInstanceWithComponentDescription(in pAudioComponentDescription as AudioComponentDescription, pAudioComponentInstantiationOptions as UInt32, in pCompletionHandler as any) \
+private foreign handler objC_AVAudioEngineAlloc() returns ObjcRetainedId binds to "objc:AVAudioEngine.+alloc" -- must be ObjcRetainedId
+private foreign handler objC_AVAudioEngineInit(in pAVAudioEngine as ObjcId) returns ObjcId binds to "objc:AVAudioEngine.-init"
+private foreign handler objC_AVAudioEnginePrepareToStart(in pAVAudioEngine as ObjcId) returns nothing binds to "objc:AVAudioEngine.-prepare"
+private foreign handler objC_AVAudioEngineStart(in pAVAudioEngine as ObjcId, out rError as optional ObjcId) returns CBool binds to "objc:AVAudioEngine.-startAndReturnError:"
+
+private foreign handler objC_AVAudioUnitAlloc() returns ObjcId binds to "objc:AVAudioUnit.+alloc"
+private foreign handler objC_AVAudioUnitInstanceWithComponentDescription(in pAudioComponentDescription as AudioComponentDescription, pAudioComponentInstantiationOptions as UInt32, in pAUInistanceCompletionHandler as optional any) \
                                                                         returns ObjcId binds to "objc:AVAudioUnit.+instantiateWithComponentDescription:options:completionHandler:"
+
+private variable sAUInstanceCompletionHandler as optional ObjcBlockPointer
+private variable sAVAudioEngine as optional ObjcObject
+private variable sAVAudioUnit as optional ObjcObject
 
 private foreign handler c_AudioUnitUninitialize(in pAVAUSampler as ObjcId) returns CSInt binds to "c:AudioUnit.framework>AudioUnitUninitialize"
 private foreign handler c_AudioUnitInitialize(in pAVAUSampler as ObjcId) returns CSInt binds to "c:AudioUnit.framework>AudioUnitInitialize"
@@ -72,6 +82,101 @@ private foreign handler c_AudioUnitGetProperty(in pAudioUnit as ObjcId,in pPrope
                                        out rData as Data, out rDataSize as UInt32) returns CSInt binds to "c:AudioUnit.framework>AudioUnitGetProperty"
 private foreign handler c_AudioComponentCopyConfigurationInfo(in pAudioUnit as ObjcId, out rCFDictRef as optional ObjcId) returns CSInt binds to "c:AudioUnit.framework>AudioComponentCopyConfigurationInfo"
 -- OSStatus AudioComponentCopyConfigurationInfo(AudioComponent inComponent, CFDictionaryRef  _Nullable *outConfigurationInfo);
+
+public handler AUInstanceCompletionHandler( in pContext as optional ObjcBlockPointer, in pAVAudioUnit as optional any, in pNSError as optional any, in pSomething as optional any)
+      log pAVAudioUnit
+      log pNSError
+end handler
+
+public handler AVAudioUnitInitWithDescr(in pAUType as optional String, in pAUSubType as optional String, in pAUManufacturer as optional String) returns optional any
+   variable tSoundFontNSURL as ObjcObject
+   variable tAVAudioEngineDidStart as Boolean
+   variable tNSError as optional ObjcObject
+   variable tNSErrorDescriptionRef as ObjcObject
+   variable tErrorDescription as optional String
+   variable tAudioComponentDescription as AudioComponentDescription
+   variable tNSObj as optional ObjcId
+   variable tNumber as optional Number -- Integer
+   variable tComponentType as UInt32
+   variable tComponentSubType as UInt32
+   variable tComponentManufacturer as UInt32
+   variable tComponentFlags as UInt32
+   variable tComponentFlagsMask as UInt32
+   variable tAVAudioUnit as optional ObjcObject
+   variable tAVAudioUnitInitOptions as UInt32
+
+   -- if sAVAudioEngine is nothing then
+      unsafe
+        ------------------- Get Shared AUComponentManager -------------------------
+         -- put objC_AVAudioUnitAUComponentManager() into tAVAudioUnitsManagerInstance
+         ----------------------------- ComponentType ------------------------------
+         if pAUType is not "" then
+            put getIntegerFromFourCharCodeBigEndian(pAUType) into tComponentType
+         else
+            put 1635085685 into tComponentType -- Music Device
+         end if
+        ------------------------------- AUSubType --------------------------
+        if pAUSubType is not "" then
+           put getIntegerFromFourCharCodeBigEndian(pAUSubType) into tComponentSubType
+        else
+           put getIntegerFromFourCharCodeBigEndian("msyn") into tComponentSubType
+        end if
+       ----------------------------- Manufacturers -------------------------
+       if pAUManufacturer is not "" then
+          if pAUManufacturer is "Apple" then
+             put 1634758764 into tComponentManufacturer
+          else if pAUManufacturer is "Native Instruments" then
+             put 760105261 into tComponentManufacturer
+          else
+             put getIntegerFromFourCharCodeBigEndian(pAUManufacturer) into tComponentManufacturer
+          end if
+        else
+             put 1634758764 into tComponentManufacturer -- Apple
+        end if
+         put [tComponentType,tComponentSubType,tComponentManufacturer,0,0] into tAudioComponentDescription
+         -- put objC_AVAudioEngineAlloc() into sAVAudioEngine
+         -- put objC_AVAudioEngineInit(sAVAudioEngine) into sAVAudioEngine
+         -- log sAVAudioEngine
+         -- objC_AVAudioEnginePrepareToStart(sAVAudioEngine)
+         -- put objC_AVAudioEngineStart(sAVAudioEngine,tNSError) into tAVAudioEngineDidStart
+
+         if not CreateObjcBlockPointerFromHandler(AUInstanceCompletionHandler,sAUInstanceCompletionHandler) then
+            log sAUInstanceCompletionHandler
+            log "fail"
+            -- put nothing into sAUInstanceCompletionHandler
+         else
+            log sAUInstanceCompletionHandler
+            put 1 into tAVAudioUnitInitOptions -- InProcess	2	 -- OutOfProcess	1
+            put objC_AVAudioUnitAlloc() into sAVAudioUnit -- no need to pre-allocate?
+            objC_AVAudioUnitInstanceWithComponentDescription(tAudioComponentDescription,tAVAudioUnitInitOptions, sAUInstanceCompletionHandler)
+            log sAVAudioUnit
+         end if
+         -- objC_AVAudioEngineAttachNode(sAVAudioEngine,sAVAudioUnitMIDIInstrument)
+         -- check engine to see if it attached the instrument node sucessfully:
+         -- put objC_AVAudioNodeGetEngine(sAVAudioUnitMIDIInstrument) into tNSObj -- Null if Node is not attached to an AVAudioEngine
+         -- put objC_AVAudioEngineGetOutputNode(sAVAudioEngine) into tNSObj
+         -- put objC_AVAudioEngineGetInputNode(sAVAudioEngine) into tNSObj
+         -- put objC_AVAudioEngineGetMainMixerNode(sAVAudioEngine) into tNSObj
+         -- engine.connect(sampler, to: engine.mainMixerNode, format: nil)
+         -- objC_AVAudioEngineConnectSourceToDest(sAVAudioEngine,sAVAudioUnitMIDIInstrument,tNSObj,nothing)
+         -- objC_AVAudioEnginePrepareToStart(sAVAudioEngine)
+         -- put objC_AVAudioEngineStart(sAVAudioEngine,tNSError) into tAVAudioEngineDidStart
+         -- if tAVAudioEngineDidStart is true then
+         --   return true
+         --- else
+         --   if tNSError is not nothing then
+         --      put c_CFErrorCopyDescription(tNSError) into tNSErrorDescriptionRef
+         --      put StringFromNSString(tNSErrorDescriptionRef) into tErrorDescription
+         --      return tErrorDescription
+         --   else
+         --      return false
+         --   end if
+         -- end if
+       end unsafe
+   -- else
+   --   return "AVEngine is already running."
+   -- end if
+end handler
 
 public handler NSArrayToString(in pNSArray as ObjcObject) returns String
   variable tNSArray as ObjcObject
