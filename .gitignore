@@ -5,3 +5,106 @@
 *.lce
 *.lci
 *.lcm
+._.DS_Store
+._api.lcdoc
+._AVAudioUnitComponentManager.livecode
+._research
+research/._absoluteString | Apple Developer Documentation.webloc
+research/._absoluteURL | Apple Developer Documentation.webloc
+research/._allTagNames | Apple Developer Documentation.webloc
+research/._allTagNames-An array of tag .textClipping
+research/._AUAudioUnitPreset Class (AudioUnit) | Microsoft Docs.webloc
+research/._AUAudioUnitPreset | Apple Developer Documentation.webloc
+research/._AUComponent.h.textClipping
+research/._Audio Unit Component Services | Apple Developer Documentation.webloc
+research/._Audio Unit Type Names | Apple Developer Documentation.webloc
+research/._AudioComponentCopyConfigurationInfo | Apple Developer Documentation.webloc
+research/._AudioComponentCopyIcon | Apple Developer Documentation.webloc
+research/._AudioComponentCopyIcon(_-) | Apple Developer Documentation.webloc
+research/._AudioComponentInstanceCanDo | Apple Developer Documentation.webloc
+research/._AudioComponentValidate | Apple Developer Documentation.webloc
+research/._AudioUnit SubTypes
+research/._auval -a.textClipping
+research/._AVAudioUnitMidiInstrument Class (AVFoundation) | Microsoft Docs.webloc
+research/._configurationDictionary | Apple Developer Documentation.webloc
+research/._CoreAudio 10.1.1.363.8872.pdf
+research/._General Audio Unit Function Selectors - AudioToolbox | Apple Developer Documentation.webloc
+research/._Generator Audio Unit Subtypes - AudioToolbox | Apple Developer Documentation.webloc
+research/._hasCustomView | Apple Developer Documentation.webloc
+research/._hasMIDIOutput | Apple Developer Documentation.webloc
+research/._hasMIDIOutput-Whether the au.textClipping
+research/._How to use AUAudioUnitPreset | Apple Developer Forums.webarchive
+research/._icon | Apple Developer Documentation.webloc
+research/._iconURL | Apple Developer Documentation.webloc
+research/._iconURL-The URL of an icon t.textClipping
+research/._Incorporating Audio Effects and Instruments | Apple Developer Documentation.webloc
+research/._kAudioComponentFlag_CanLoadI.textClipping
+research/._kAudioComponentFlag_SandboxS.textClipping
+research/._kAudioComponentFlag_Unsearch.textClipping
+research/._kAudioUnitType_Generator-A g.textClipping
+research/._localizedTypeName | Apple Developer Documentation.webloc
+research/._manufacturerName | Apple Developer Documentation.webloc
+research/._name | Apple Developer Documentation.webloc
+research/._nstance Property-componentUR.textClipping
+research/._passesAUVal | Apple Developer Documentation.webloc
+research/._path | Apple Developer Documentation.webloc
+research/._sandboxSafe | Apple Developer Documentation.webloc
+research/._supportsNumberInputChannels-outputChannels- | Apple Developer Documentation.webloc
+research/._System-Supplied Audio Units in OS X.webloc
+research/._Tutorials | JUCE.webloc
+research/._typeName | Apple Developer Documentation.webloc
+research/._userTagNames | Apple Developer Documentation.webloc
+research/._version | Apple Developer Documentation.webloc
+research/._versionString | Apple Developer Documentation.webloc
+research/AudioUnit SubTypes/._kAudioUnitSubType_AUConverte.textClipping
+research/AudioUnit SubTypes/._kAudioUnitSubType_AudioFileP.textClipping
+research/AudioUnit SubTypes/._kAudioUnitSubType_AUiPodEQ =.textClipping
+research/AudioUnit SubTypes/._kAudioUnitSubType_AUiPodTime.textClipping
+research/AudioUnit SubTypes/._kAudioUnitSubType_BandPassFi.textClipping
+research/AudioUnit SubTypes/._kAudioUnitSubType_DeferredRe.textClipping
+research/AudioUnit SubTypes/._kAudioUnitSubType_Delay = 'd.textClipping
+research/AudioUnit SubTypes/._kAudioUnitSubType_Distortion.textClipping
+research/AudioUnit SubTypes/._kAudioUnitSubType_DLSSynth =.textClipping
+research/AudioUnit SubTypes/._kAudioUnitSubType_DynamicsPr.textClipping
+research/AudioUnit SubTypes/._kAudioUnitSubType_GenericOut.textClipping
+research/AudioUnit SubTypes/._kAudioUnitSubType_HighPassFi.textClipping
+research/AudioUnit SubTypes/._kAudioUnitSubType_HighShelfF.textClipping
+research/AudioUnit SubTypes/._kAudioUnitSubType_LowShelfFi.textClipping
+research/AudioUnit SubTypes/._kAudioUnitSubType_MatrixMixe.textClipping
+research/AudioUnit SubTypes/._kAudioUnitSubType_Merger = '.textClipping
+research/AudioUnit SubTypes/._kAudioUnitSubType_MIDISynth .textClipping
+research/AudioUnit SubTypes/._kAudioUnitSubType_MultiChann.textClipping
+research/AudioUnit SubTypes/._kAudioUnitSubType_MultiSplit.textClipping
+research/AudioUnit SubTypes/._kAudioUnitSubType_NBandEQ = .textClipping
+research/AudioUnit SubTypes/._kAudioUnitSubType_NewTimePit.textClipping
+research/AudioUnit SubTypes/._kAudioUnitSubType_Parametric.textClipping
+research/AudioUnit SubTypes/._kAudioUnitSubType_PeakLimite.textClipping
+research/AudioUnit SubTypes/._kAudioUnitSubType_Reverb2 = .textClipping
+research/AudioUnit SubTypes/._kAudioUnitSubType_RoundTripA 2.textClipping
+research/AudioUnit SubTypes/._kAudioUnitSubType_RoundTripA.textClipping
+research/AudioUnit SubTypes/._kAudioUnitSubType_SampleDela.textClipping
+research/AudioUnit SubTypes/._kAudioUnitSubType_Sampler = .textClipping
+research/AudioUnit SubTypes/._kAudioUnitSubType_ScheduledS.textClipping
+research/AudioUnit SubTypes/._kAudioUnitSubType_SpatialMix.textClipping
+research/AudioUnit SubTypes/._kAudioUnitSubType_Splitter =.textClipping
+research/AudioUnit SubTypes/._kAudioUnitSubType_Varispeed .textClipping
+research/AudioUnit SubTypes/._kAudioUnitSubType_VoiceProce.textClipping
+research/AudioUnit Types/._AVAudioUnitComponent | Apple Developer Documentation.webloc
+research/AudioUnit Types/._kAudioUnitManufacturer_Apple.textClipping
+research/AudioUnit Types/._kAudioUnitType_Effect = 'auf.textClipping
+research/AudioUnit Types/._kAudioUnitType_FormatConvert.textClipping
+research/AudioUnit Types/._kAudioUnitType_Generator = '.textClipping
+research/AudioUnit Types/._kAudioUnitType_Generator-A g.textClipping
+research/AudioUnit Types/._kAudioUnitType_MIDIProcessor 2.textClipping
+research/AudioUnit Types/._kAudioUnitType_MIDIProcessor.textClipping
+research/AudioUnit Types/._kAudioUnitType_Mixer = 'aumx.textClipping
+research/AudioUnit Types/._kAudioUnitType_MusicDevice =.textClipping
+research/AudioUnit Types/._kAudioUnitType_MusicDevice-A 2.textClipping
+research/AudioUnit Types/._kAudioUnitType_MusicDevice-A.textClipping
+research/AudioUnit Types/._kAudioUnitType_MusicEffect =.textClipping
+research/AudioUnit Types/._kAudioUnitType_MusicEffect-A 2.textClipping
+research/AudioUnit Types/._kAudioUnitType_MusicEffect-A.textClipping
+research/AudioUnit Types/._kAudioUnitType_OfflineEffect.textClipping
+research/AudioUnit Types/._kAudioUnitType_Output-An out 2.textClipping
+research/AudioUnit Types/._kAudioUnitType_Output-An out.textClipping
+research/AudioUnit Types/._kAudioUnitType_Panner = 'aup.textClipping
