@@ -468,6 +468,7 @@ public handler AVAudioUnitCMGetUnits(in pAUType as optional String, in pAUSubTyp
          end if
 
          put objC_AVAudioUnitComponentHasCustomView( tAVAUAudioComponent ) into tCBool
+         -- log "Has custom UI ", tCBool
          if tCBool is true then
             put "true \t" after rTempStr
          else
